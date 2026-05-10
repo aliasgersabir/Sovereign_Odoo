@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler } from "chart.js";
 import { Users, Globe, Eye, Activity } from "lucide-react";
@@ -31,15 +32,6 @@ interface SearchHistoryEntry {
   pct?: number;
 }
 
-interface ItineraryDay {
-  activities: { name: string }[];
-}
-
-interface ExpenseEntry {
-  amount: number;
-  category: string;
-}
-
 export default function AdminPage() {
   const [timeRange, setTimeRange] = useState("7d");
   const [liveUsers, setLiveUsers] = useState<AppAction[]>([]);
@@ -53,6 +45,10 @@ export default function AdminPage() {
     totalExpenses: 0
   });
   
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
   const [catData, setCatData] = useState({
     sightseeing: 10,
     food: 8,
@@ -60,13 +56,17 @@ export default function AdminPage() {
     transport: 4
   });
 
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  useEffect(() => {
+    const authed = sessionStorage.getItem("admin_authed");
+    if (authed === "true") setIsAdminAuthenticated(true);
+  }, []);
+
+  useEffect(() => {
+    if (isAdminAuthenticated) sessionStorage.setItem("admin_authed", "true");
+  }, [isAdminAuthenticated]);
 
   useEffect(() => {
     async function load() {
-      // Only load stats if authenticated
       if (!isAdminAuthenticated) return;
       
       const res = await getAdminStats();
@@ -99,7 +99,6 @@ export default function AdminPage() {
     }
   };
 
-  // Time range multiplier for displaying filtered data
   const timeMultiplier = useMemo(() => {
     switch (timeRange) {
       case "24h": return 0.15;
@@ -120,7 +119,6 @@ export default function AdminPage() {
     }
   }, [timeRange]);
 
-  // Calculate Authentic Numbers scaled by time range
   const totalUsersNum = Math.max(1, Math.round(localStats.hasUser * timeMultiplier));
   const activeTripsNum = Math.max(localStats.activeTrips, Math.round(localStats.activeTrips * timeMultiplier));
   const engagementNum = Math.round(localStats.engagementCount * timeMultiplier);
@@ -133,7 +131,6 @@ export default function AdminPage() {
     { label: "Activities Planned", value: engagementNum.toString(), icon: <Activity size={22} />, color: "#f59e0b" },
   ];
 
-  // Dynamic user growth labels change based on time range
   const generateLabels = () => {
     const labels = [];
     const today = new Date();
@@ -157,7 +154,6 @@ export default function AdminPage() {
     return labels;
   };
 
-  // Simulate growth curve scaled to time range
   const generateGrowthData = () => {
     const base = localStats.engagementCount;
     if (timeRange === "24h") return [0, 0, 0, 0, 0, 0, 0, base];
@@ -182,7 +178,6 @@ export default function AdminPage() {
     }],
   };
 
-  // Authentic category distribution based purely on local app usage
   const categoryData = {
     labels: ["Sightseeing", "Food & Meals", "Hotels & Stays", "Transport"],
     datasets: [{
@@ -217,7 +212,8 @@ export default function AdminPage() {
               Please enter the master password to view platform analytics.
             </p>
             <form onSubmit={handleAdminLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div>
+              <div style={{ textAlign: "left" }}>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#52525b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Password</label>
                 <input 
                   type="password" 
                   value={adminPassword}
@@ -235,6 +231,7 @@ export default function AdminPage() {
                 Unlock Dashboard
               </button>
             </form>
+            <Link href="/" style={{ display: "block", marginTop: "24px", color: "#71717a", fontSize: "13px", textDecoration: "none" }}>Back to Homepage</Link>
           </div>
         </main>
       ) : (
