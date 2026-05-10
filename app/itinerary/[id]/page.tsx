@@ -45,7 +45,7 @@ export default function SharedItinerary() {
     <div style={{ minHeight: "100vh", backgroundColor: "#09090b", color: "#f4f4f5", fontFamily: "'Inter', sans-serif" }}>
       {/* Minimal Header */}
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, height: "70px", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 10%", background: "rgba(9,9,11,0.9)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.05)", zIndex: 1000 }}>
-        <span style={{ fontSize: "1.3rem", fontWeight: 800, color: "#10b981", letterSpacing: "2px" }}>TRAVELO</span>
+        <span style={{ fontSize: "1.3rem", fontWeight: 800, color: "#10b981", letterSpacing: "2px" }}>ODYSEA</span>
         <span style={{ color: "#71717a", fontSize: "14px" }}>Shared Itinerary</span>
       </nav>
 

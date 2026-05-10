@@ -24,7 +24,7 @@ export default function ItineraryPage() {
       { id: 6, time: "14:00", name: "Lunch & free time", notes: "" },
     ]},
   ]);
-  const [dest, setDest] = useState<{ city: string; country: string } | null>(null);
+  const [dest, setDest] = useState<{ city: string; country: string; image?: string } | null>(null);
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [showShare, setShowShare] = useState(false);
@@ -136,7 +136,20 @@ export default function ItineraryPage() {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#09090b", color: "#f4f4f5", fontFamily: "'Inter', sans-serif" }}>
       <Navbar />
-      <main style={{ maxWidth: "1000px", margin: "0 auto", padding: "110px 24px 80px" }}>
+      
+      {/* Destination Hero Image */}
+      {dest?.image && (
+        <div style={{ position: "relative", height: "350px", overflow: "hidden", marginTop: "60px" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundImage: `url(${dest.image})`, backgroundSize: "cover", backgroundPosition: "center", filter: "brightness(0.5) contrast(1.2)" }} />
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "linear-gradient(to bottom, transparent, #09090b)" }} />
+          <div style={{ position: "absolute", bottom: "40px", left: "50%", transform: "translateX(-50%)", textAlign: "center", width: "100%", padding: "0 24px" }}>
+             <h2 style={{ fontSize: "clamp(2rem, 5vw, 4rem)", fontWeight: 800, textShadow: "0 4px 12px rgba(0,0,0,0.5)" }}>{dest.city}</h2>
+             <p style={{ fontSize: "1.2rem", opacity: 0.8, letterSpacing: "2px", textTransform: "uppercase" }}>{dest.country}</p>
+          </div>
+        </div>
+      )}
+
+      <main style={{ maxWidth: "1000px", margin: "0 auto", padding: dest?.image ? "40px 24px 80px" : "110px 24px 80px" }}>
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px", flexWrap: "wrap", gap: "16px" }}>
           <div>

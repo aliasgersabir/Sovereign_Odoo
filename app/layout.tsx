@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Travelo | Discover",
+  title: "Odysea | Journey Beyond",
   description: "Premium travel experiences designed for the modern adventurer.",
 };
 

@@ -13,6 +13,7 @@ import {
   User,
   Settings,
   LogOut,
+  BookOpen,
 } from "lucide-react";
 
 interface CurrentUser {
@@ -28,13 +29,11 @@ export default function Navbar() {
 
   useEffect(() => {
     const stored = localStorage.getItem("currentUser");
-    if (!stored) {
-      router.push("/login");
-      return;
+    if (stored) {
+      setCurrentUser(JSON.parse(stored));
     }
-    setCurrentUser(JSON.parse(stored));
     setLoading(false);
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -54,7 +53,7 @@ export default function Navbar() {
   };
 
   if (loading) {
-    return <nav className="navbar"><div className="logo">TRAVELO</div></nav>;
+    return <nav className="navbar"><div className="logo">ODYSEA</div></nav>;
   }
 
   const displayName = currentUser?.fullName || currentUser?.email || "User";
@@ -64,46 +63,61 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link href="/" className="logo" style={{ textDecoration: 'none' }}>TRAVELO</Link>
+      <Link href="/" className="logo" style={{ textDecoration: 'none', color: '#10b981', fontWeight: 800, fontSize: '1.5rem', letterSpacing: '2px' }}>
+        ODYSEA
+      </Link>
       <div className="nav-links">
-        <Link href="/discover">
-          <Compass className="lucide-icon" /> Explore
-        </Link>
-        <Link href="/budget">
-          <DollarSign className="lucide-icon" /> Budget
-        </Link>
-        <Link href="/itinerary">
-          <CalendarDays className="lucide-icon" /> Itinerary
-        </Link>
-        <Link href="/admin">
-          <BarChart3 className="lucide-icon" /> Admin
-        </Link>
-
-        <div className={`profile-dropdown ${dropdownActive ? "active" : ""}`}>
-          <div
-            className="profile-trigger"
-            onClick={(e) => {
-              e.stopPropagation();
-              setDropdownActive(!dropdownActive);
-            }}
-          >
-            <img src={avatarUrl} alt="Profile" className="avatar" />
-            <span>{displayName}</span>
-            <ChevronDown className="lucide-icon" />
-          </div>
-          <div className="dropdown-content">
-            <Link href="/edit-profile">
-              <User className="lucide-icon" /> Edit Profile
+        {currentUser && (
+          <>
+            <Link href="/discover">
+              <Compass className="lucide-icon" /> Explore
             </Link>
-            <a href="#">
-              <Settings className="lucide-icon" /> Settings
-            </a>
-            <hr />
-            <a href="#" className="logout" onClick={handleLogout}>
-              <LogOut className="lucide-icon" /> Logout
-            </a>
+            <Link href="/budget">
+              <DollarSign className="lucide-icon" /> Budget
+            </Link>
+            <Link href="/itinerary">
+              <CalendarDays className="lucide-icon" /> Itinerary
+            </Link>
+            <Link href="/journal">
+              <BookOpen className="lucide-icon" /> Journal
+            </Link>
+            <Link href="/admin">
+              <BarChart3 className="lucide-icon" /> Admin
+            </Link>
+          </>
+        )}
+
+        {currentUser ? (
+          <div className={`profile-dropdown ${dropdownActive ? "active" : ""}`}>
+            <div
+              className="profile-trigger"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDropdownActive(!dropdownActive);
+              }}
+            >
+              <img src={avatarUrl} alt="Profile" className="avatar" />
+              <span>{displayName}</span>
+              <ChevronDown className="lucide-icon" />
+            </div>
+            <div className="dropdown-content">
+              <Link href="/edit-profile">
+                <User className="lucide-icon" /> Edit Profile
+              </Link>
+              <a href="#">
+                <Settings className="lucide-icon" /> Settings
+              </a>
+              <hr />
+              <a href="#" className="logout" onClick={handleLogout}>
+                <LogOut className="lucide-icon" /> Logout
+              </a>
+            </div>
           </div>
-        </div>
+        ) : (
+          <Link href="/login" style={{ display: "inline-block", background: "#10b981", color: "#000", padding: "8px 20px", borderRadius: "100px", fontWeight: 700, textDecoration: "none", marginLeft: "10px" }}>
+            Log In
+          </Link>
+        )}
       </div>
     </nav>
   );

@@ -68,6 +68,7 @@ export default function AdminPage() {
     const savedExpenses = localStorage.getItem("expenses");
     const currentUser = localStorage.getItem("currentUser");
     const tripDest = localStorage.getItem("tripDestination");
+    const savedJournal = localStorage.getItem("travelJournal");
     
     let activeTripsCount = tripDest ? 1 : 0;
     let engagement = 0;
@@ -102,6 +103,13 @@ export default function AdminPage() {
           if (e.category === "Meals") fd += 3;
           if (e.category === "Activities") ss += 3;
         });
+      } catch {}
+    }
+    
+    if (savedJournal) {
+      try {
+        const journal = JSON.parse(savedJournal);
+        engagement += journal.length;
       } catch {}
     }
     

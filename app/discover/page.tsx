@@ -40,13 +40,26 @@ async function fetchFromCommons(query: string): Promise<string> {
   return "";
 }
 
-// Combined fetcher: tries Wikipedia first, then Wikimedia Commons
-async function fetchCityImage(query: string): Promise<string> {
-  const wiki = await fetchFromWikipedia(query);
-  if (wiki) return wiki;
-  const commons = await fetchFromCommons(query);
+// Combined fetcher: tries multiple strategies to get the most accurate and beautiful images
+async function fetchCityImage(city: string, country: string, category: "landmark" | "food" | "hotel" | "city" = "city"): Promise<string> {
+  // Strategy 1: Specific category search on Wikipedia
+  const categoryQuery = category === "food" ? `${city} cuisine` : category === "hotel" ? `Hotels in ${city}` : `${city} ${category}`;
+  const catWiki = await fetchFromWikipedia(categoryQuery);
+  if (catWiki && !catWiki.includes("Flag") && !catWiki.includes("Map")) return catWiki;
+
+  // Strategy 2: Direct city search as fallback for city/landmark
+  if (category === "city" || category === "landmark") {
+    const cityWiki = await fetchFromWikipedia(city);
+    if (cityWiki && !cityWiki.includes("Flag") && !cityWiki.includes("Map")) return cityWiki;
+  }
+
+  // Strategy 3: Wikimedia Commons search
+  const commons = await fetchFromCommons(`${city} ${category} sightseeing`);
   if (commons) return commons;
-  return "";
+
+  // GUARANTEED FALLBACK: High-quality, relevant photos from LoremFlickr using specific tags
+  const tags = category === "food" ? "food,restaurant" : category === "hotel" ? "hotel,bedroom" : "landmark,cityscape";
+  return `https://loremflickr.com/1200/800/${encodeURIComponent(city)},${tags},travel/all`;
 }
 
 export default function DiscoverPage() {
@@ -94,12 +107,12 @@ export default function DiscoverPage() {
     setQuery(name);
     setSuggestions([]);
     setIsFocused(false);
-    const img = await fetchCityImage(name);
+    const countryName = city.address.country || "";
+    const img = await fetchCityImage(name, countryName, "city");
     setCityImg(img);
 
     // Fetch currency using country_code (works for all languages: jp, fr, in, etc.)
     const countryCode = city.address.country_code;
-    const countryName = city.address.country || "";
     if (countryCode) {
       try {
         const res = await fetch(`https://restcountries.com/v3.1/alpha/${countryCode.toUpperCase()}?fields=currencies,name`);
@@ -110,7 +123,7 @@ export default function DiscoverPage() {
           if (currencies) {
             const code = Object.keys(currencies)[0];
             const symbol = currencies[code]?.symbol || code;
-            localStorage.setItem("tripDestination", JSON.stringify({ city: name, country: englishName, currencyCode: code, currencySymbol: symbol }));
+            localStorage.setItem("tripDestination", JSON.stringify({ city: name, country: englishName, currencyCode: code, currencySymbol: symbol, image: img }));
             
             // Track search for authentic admin dashboard data
             try {
@@ -270,11 +283,11 @@ export default function DiscoverPage() {
             <h3 style={{ fontSize: "26px", fontWeight: 700, color: "#fff", marginBottom: "24px" }}>Things to do in {cityName}</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "24px" }}>
               {[
-                { title: "Guided Sightseeing Tour", desc: "Explore the historic landmarks and iconic views", baseUSD: 89, rating: "4.9", suffix: "person", wikiQuery: `Tourism in ${cityName}`, googleQ: `sightseeing tours in ${cityName}` },
-                { title: "Authentic Culinary Experience", desc: "Taste the local flavors with expert food guides", baseUSD: 65, rating: "4.8", suffix: "person", wikiQuery: `Cuisine of ${selectedCity.address.country || cityName}`, googleQ: `food tours in ${cityName}` },
-                { title: "Premium Boutique Stays", desc: "Top rated luxury accommodations", baseUSD: 150, rating: "5.0", suffix: "night", wikiQuery: `Hotels in ${cityName}`, googleQ: `best hotels in ${cityName}` },
+                { title: "Guided Sightseeing Tour", desc: "Explore the historic landmarks and iconic views", baseUSD: 89, rating: "4.9", suffix: "person", category: "landmark", googleQ: `sightseeing tours in ${cityName}` },
+                { title: "Authentic Culinary Experience", desc: "Taste the local flavors with expert food guides", baseUSD: 65, rating: "4.8", suffix: "person", category: "food", googleQ: `food tours in ${cityName}` },
+                { title: "Premium Boutique Stays", desc: "Top rated luxury accommodations", baseUSD: 150, rating: "5.0", suffix: "night", category: "hotel", googleQ: `best hotels in ${cityName}` },
               ].map((item, i) => (
-                <ActivityCard key={i} {...item} currSym={currSym} exRate={exRate} />
+                <ActivityCard key={i} {...item} cityName={cityName} countryName={selectedCity.address.country || ""} currSym={currSym} exRate={exRate} />
               ))}
             </div>
           </div>
@@ -285,17 +298,17 @@ export default function DiscoverPage() {
   );
 }
 
-function ActivityCard({ title, desc, baseUSD, rating, suffix, wikiQuery, googleQ, currSym, exRate }: { title: string; desc: string; baseUSD: number; rating: string; suffix: string; wikiQuery: string; googleQ: string; currSym: string; exRate: number }) {
+function ActivityCard({ title, desc, baseUSD, rating, suffix, category, googleQ, currSym, exRate, cityName, countryName }: { title: string; desc: string; baseUSD: number; rating: string; suffix: string; category: any; googleQ: string; currSym: string; exRate: number; cityName: string; countryName: string }) {
   const [img, setImg] = useState("");
   const [imgLoading, setImgLoading] = useState(true);
 
   useEffect(() => {
     setImgLoading(true);
-    fetchCityImage(wikiQuery).then((url) => {
+    fetchCityImage(cityName, countryName, category).then((url) => {
       setImg(url);
       setImgLoading(false);
     });
-  }, [wikiQuery]);
+  }, [category, cityName, countryName]);
 
   const convertedPrice = Math.round(baseUSD * exRate);
   const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(googleQ)}`;

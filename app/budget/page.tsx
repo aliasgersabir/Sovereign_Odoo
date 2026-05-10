@@ -64,7 +64,7 @@ export default function BudgetPage() {
   const [totalBudgetStr, setTotalBudgetStr] = useState("2000");
   const [sym, setSym] = useState("$");
   const [code, setCode] = useState("USD");
-  const [dest, setDest] = useState<{city:string;country:string}|null>(null);
+  const [dest, setDest] = useState<{city:string;country:string;image?:string}|null>(null);
 
   useEffect(() => {
     const s = localStorage.getItem("tripDestination");
@@ -73,7 +73,7 @@ export default function BudgetPage() {
         const d = JSON.parse(s);
         setSym(d.currencySymbol || "$");
         setCode(d.currencyCode || "USD");
-        setDest({ city: d.city, country: d.country });
+        setDest({ city: d.city, country: d.country, image: d.image });
       } catch {}
     }
     
@@ -202,7 +202,19 @@ export default function BudgetPage() {
     <div style={{ minHeight: "100vh", backgroundColor: "#09090b", color: "#f4f4f5", fontFamily: "'Inter', sans-serif" }}>
       <Navbar />
 
-      <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "110px 24px 80px" }}>
+      {/* Destination Hero Image */}
+      {dest?.image && (
+        <div style={{ position: "relative", height: "300px", overflow: "hidden", marginTop: "60px" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundImage: `url(${dest.image})`, backgroundSize: "cover", backgroundPosition: "center", filter: "brightness(0.4) contrast(1.1)" }} />
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "linear-gradient(to bottom, transparent, #09090b)" }} />
+          <div style={{ position: "absolute", bottom: "30px", left: "24px", textAlign: "left" }}>
+             <h2 style={{ fontSize: "clamp(1.5rem, 4vw, 3rem)", fontWeight: 800, textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>{dest.city} Budget</h2>
+             <p style={{ fontSize: "1rem", opacity: 0.7, textTransform: "uppercase", letterSpacing: "1px" }}>{dest.country}</p>
+          </div>
+        </div>
+      )}
+
+      <main style={{ maxWidth: "1200px", margin: "0 auto", padding: dest?.image ? "40px 24px 80px" : "110px 24px 80px" }}>
         {/* Header */}
         <div style={{ marginBottom: "40px" }}>
           <h1 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 800, marginBottom: "8px", background: "linear-gradient(to right, #fff, #71717a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
