@@ -1,0 +1,68 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          String      @id @default(uuid())
+  email       String      @unique
+  password    String
+  fullName    String?
+  itineraries Itinerary[]
+  expenses    Expense[]
+}
+
+model Itinerary {
+  id      String         @id @default(uuid())
+  userId  String?
+  city    String
+  country String
+  days    ItineraryDay[]
+  user    User?          @relation(fields: [userId], references: [id])
+}
+
+model ItineraryDay {
+  id          String     @id @default(uuid())
+  itineraryId String
+  day         Int
+  title       String
+  activities  Activity[]
+  itinerary   Itinerary  @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id    String       @id @default(uuid())
+  dayId String
+  time  String
+  name  String
+  notes String?
+  day   ItineraryDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+}
+
+model Expense {
+  id       String   @id @default(uuid())
+  userId   String
+  amount   Float
+  category String
+  date     DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ActionLog {
+  id        String   @id @default(uuid())
+  action    String
+  timestamp DateTime @default(now())
+}
+
+model SearchLog {
+  id      String @id @default(uuid())
+  city    String
+  country String
+  count   Int    @default(1)
+
+  @@unique([city, country])
+}
